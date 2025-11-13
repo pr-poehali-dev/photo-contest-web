@@ -39,8 +39,10 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
   }, []);
 
   useEffect(() => {
-    loadPhotoPair();
-  }, [userId]);
+    if (userId > 0 && !photoPair && !votingComplete) {
+      loadPhotoPair();
+    }
+  }, []);
 
   useEffect(() => {
     if (photoPair) {
