@@ -153,28 +153,22 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
       </header>
 
       {isMobile ? (
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 relative">
           <button
             onClick={() => handleVote(photoPair.photo1.id)}
             disabled={!canVote}
-            className={`flex-1 relative overflow-hidden transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
+            className={`flex-1 relative overflow-hidden ${!canVote ? 'cursor-not-allowed' : ''}`}
           >
             <img
               src={photoPair.photo1.image_url}
               alt="Фото 1"
               className="w-full h-full object-cover"
             />
-            {!canVote && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 gap-2">
-                <p className="text-white text-lg font-bold">Подождите</p>
-                <div className="text-5xl font-bold text-white">{timeLeft}</div>
-              </div>
-            )}
           </button>
           <button
             onClick={() => handleVote(photoPair.photo2.id)}
             disabled={!canVote}
-            className={`flex-1 relative overflow-hidden transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
+            className={`flex-1 relative overflow-hidden ${!canVote ? 'cursor-not-allowed' : ''}`}
           >
             <img
               src={photoPair.photo2.image_url}
@@ -182,6 +176,15 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
               className="w-full h-full object-cover"
             />
           </button>
+          
+          {!canVote && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+              <div className="bg-gray-800 rounded-lg px-4 py-3 flex flex-col items-center gap-1 shadow-2xl">
+                <p className="text-gray-300 text-sm font-medium">Оцените фото</p>
+                <div className="text-2xl font-bold text-white">{timeLeft}</div>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex-1 flex gap-4 p-4 min-h-0 relative">
