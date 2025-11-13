@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Update daily stats",
+      "method": "POST",
+      "path": "/?action=update_stats",
+      "expectedStatus": 200
+    }
+  ]
+}
