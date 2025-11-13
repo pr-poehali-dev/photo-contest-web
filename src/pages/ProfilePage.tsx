@@ -53,6 +53,7 @@ export default function ProfilePage({ currentUser, userId, onNavigate }: Profile
   }, [userId]);
 
   const loadPhotos = async () => {
+    setLoading(true);
     try {
       const photos = await api.getPhotos(userId);
       
@@ -61,18 +62,19 @@ export default function ProfilePage({ currentUser, userId, onNavigate }: Profile
         name,
         photos: photos.filter(p => p.category_id === index + 1).map(p => ({
           id: p.id,
-          image_url: p.image_url,
+          image_url: p.image_url || '',
           rating: p.rating
         }))
       }));
 
       setCategories(categoriesData);
     } catch (error) {
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось загрузить фотографии',
-        variant: 'destructive',
-      });
+      console.error('Failed to load photos:', error);
+      setCategories(CATEGORIES.map((name, index) => ({
+        id: index + 1,
+        name,
+        photos: []
+      })));
     } finally {
       setLoading(false);
     }

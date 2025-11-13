@@ -55,25 +55,23 @@ export interface Stats {
 
 async function loadImagesBatch(photoIds: number[]): Promise<Record<string, string>> {
   if (photoIds.length === 0) return {};
-  if (!API_URLS.imagesBatch) return {};
   
-  const BATCH_SIZE = 10;
-  const allImages: Record<string, string> = {};
-  
-  for (let i = 0; i < photoIds.length; i += BATCH_SIZE) {
-    const batch = photoIds.slice(i, i + BATCH_SIZE);
-    try {
-      const response = await fetch(`${API_URLS.imagesBatch}?photo_ids=${batch.join(',')}`);
-      if (response.ok) {
-        const batchImages = await response.json();
-        Object.assign(allImages, batchImages);
+  const results = await Promise.all(
+    photoIds.map(async (id) => {
+      try {
+        const response = await fetch(`${API_URLS.image}?photo_id=${id}`);
+        if (response.ok) {
+          const { image_url } = await response.json();
+          return { id: id.toString(), url: image_url };
+        }
+      } catch (error) {
+        console.error(`Failed to load image ${id}:`, error);
       }
-    } catch (error) {
-      console.error(`Failed to load batch ${i / BATCH_SIZE + 1}:`, error);
-    }
-  }
+      return { id: id.toString(), url: '' };
+    })
+  );
   
-  return allImages;
+  return Object.fromEntries(results.map(r => [r.id, r.url]));
 }
 
 export const api = {
@@ -234,7 +232,7 @@ export async function compressImage(file: File): Promise<string> {
                 return;
               }
 
-              if (blob.size > 300 * 1024 && quality > 0.1) {
+              if (blob.size > 150 * 1024 && quality > 0.1) {
                 quality -= 0.1;
                 compress();
               } else {

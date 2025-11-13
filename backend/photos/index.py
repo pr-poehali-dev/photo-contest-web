@@ -78,13 +78,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        if len(image_url) > 500000:
+        if len(image_url) > 250000:
             cur.close()
             conn.close()
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Image too large (max 500KB in base64)'}),
+                'body': json.dumps({'error': 'Image too large (max 250KB in base64)'}),
                 'isBase64Encoded': False
             }
         
