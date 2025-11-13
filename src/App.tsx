@@ -15,7 +15,9 @@ type Page = 'auth' | 'home' | 'profile' | 'vote';
 const App = () => {
   const [currentPage, setCurrentPage] = useState<Page>(() => {
     const savedUserId = localStorage.getItem('userId');
-    return savedUserId ? 'home' : 'auth';
+    const savedPage = localStorage.getItem('currentPage') as Page | null;
+    if (!savedUserId) return 'auth';
+    return savedPage || 'home';
   });
   const [currentUser, setCurrentUser] = useState<string>(() => {
     return localStorage.getItem('username') || '';
@@ -31,6 +33,12 @@ const App = () => {
       localStorage.setItem('username', currentUser);
     }
   }, [userId, currentUser]);
+
+  useEffect(() => {
+    if (userId > 0) {
+      localStorage.setItem('currentPage', currentPage);
+    }
+  }, [currentPage, userId]);
 
   const handleLogin = (id: number, username: string) => {
     setUserId(id);
