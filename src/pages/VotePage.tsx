@@ -32,7 +32,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
     const saved = sessionStorage.getItem('currentPhotoPair');
     return saved ? JSON.parse(saved) : null;
   });
-  const [timeLeft, setTimeLeft] = useState(7);
+  const [timeLeft, setTimeLeft] = useState(3);
   const loadedRef = useRef(false);
   const { toast } = useToast();
 
@@ -60,7 +60,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
   useEffect(() => {
     if (photoPair) {
       setCanVote(false);
-      setTimeLeft(7);
+      setTimeLeft(3);
       
       const interval = setInterval(() => {
         setTimeLeft(prev => {
@@ -171,7 +171,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
             disabled={!canVote}
             className={`flex-1 relative overflow-hidden ${!canVote ? 'cursor-not-allowed' : ''}`}
           >
-            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-4">
+            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-2">
               <img
                 src={photoPair.photo1.image_url}
                 alt="Фото 1"
@@ -184,7 +184,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
             disabled={!canVote}
             className={`flex-1 relative overflow-hidden ${!canVote ? 'cursor-not-allowed' : ''}`}
           >
-            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-4">
+            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-2">
               <img
                 src={photoPair.photo2.image_url}
                 alt="Фото 2"
