@@ -2,6 +2,7 @@ const API_URLS = {
   auth: 'https://functions.poehali.dev/ccc2cacc-25ed-4641-9f58-6ee23be6fa7c',
   photos: 'https://functions.poehali.dev/4ccb62b9-d773-45ee-aaeb-261b47fe6c4f',
   voting: 'https://functions.poehali.dev/b422fc96-6af8-47b7-9001-c269e818fe65',
+  stats: 'https://functions.poehali.dev/94255665-2b47-4d9e-a41e-072304fe9b76',
 };
 
 export interface User {
@@ -22,6 +23,32 @@ export interface PhotoPair {
   photo2: Photo & { views_count: number };
   category: string;
   completed?: boolean;
+}
+
+export interface TopUser {
+  id: number;
+  username: string;
+  activity_count: number;
+}
+
+export interface TopPhoto {
+  id: number;
+  image_url: string;
+  rating: number;
+  category_name: string;
+  username: string;
+}
+
+export interface Stats {
+  top_users: TopUser[];
+  top_photo: TopPhoto | null;
+  top_photos_by_category: TopPhoto[];
+  user_stats: {
+    activity: number;
+    best_photo_rating: number;
+    rank: number | null;
+    photos_by_category: Record<string, number>;
+  };
 }
 
 export const api = {
@@ -87,6 +114,16 @@ export const api = {
       const error = await response.json();
       throw new Error(error.error || 'Vote failed');
     }
+  },
+
+  async getStats(userId?: number): Promise<Stats> {
+    const url = userId 
+      ? `${API_URLS.stats}?user_id=${userId}`
+      : API_URLS.stats;
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch stats');
+    return response.json();
   },
 };
 

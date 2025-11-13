@@ -2,42 +2,72 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { api } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface HomePageProps {
   currentUser: string;
+  userId: number;
   onNavigate: (page: 'home' | 'profile' | 'vote') => void;
 }
 
 interface TopUser {
   username: string;
-  activity: number;
+  activity_count: number;
 }
 
 interface TopPhoto {
-  category: string;
-  imageUrl: string;
+  category_name: string;
+  image_url: string;
   rating: number;
 }
 
-export default function HomePage({ currentUser, onNavigate }: HomePageProps) {
+export default function HomePage({ currentUser, userId, onNavigate }: HomePageProps) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [topUsers] = useState<TopUser[]>([
-    { username: 'Александр', activity: 142 },
-    { username: 'Мария', activity: 128 },
-    { username: 'Дмитрий', activity: 115 },
-  ]);
-  const [userActivity] = useState(87);
-  const [topPhotos] = useState<TopPhoto[]>([
-    { category: 'природа', imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4', rating: 245 },
-    { category: 'город', imageUrl: 'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b', rating: 223 },
-    { category: 'животные', imageUrl: 'https://images.unsplash.com/photo-1474511320723-9a56873867b5', rating: 198 },
-  ]);
+  const [loading, setLoading] = useState(true);
+  const [topUsers, setTopUsers] = useState<TopUser[]>([]);
+  const [userActivity, setUserActivity] = useState(0);
+  const [topPhoto, setTopPhoto] = useState<TopPhoto | null>(null);
+  const [topPhotos, setTopPhotos] = useState<TopPhoto[]>([]);
+  const [userBestRating, setUserBestRating] = useState(0);
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    loadStats();
+  }, [userId]);
+
+  const loadStats = async () => {
+    try {
+      const stats = await api.getStats(userId);
+      setTopUsers(stats.top_users);
+      setUserActivity(stats.user_stats.activity);
+      setUserBestRating(stats.user_stats.best_photo_rating);
+      setTopPhoto(stats.top_photo);
+      setTopPhotos(stats.top_photos_by_category.filter(p => p.image_url));
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить статистику',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Загрузка...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -52,73 +82,88 @@ export default function HomePage({ currentUser, onNavigate }: HomePageProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Самый активный</p>
-                  <p className="text-2xl font-bold">{topUsers[0].username}</p>
-                  <p className="text-lg text-primary">{topUsers[0].activity} голосов</p>
+                  {topUsers.length > 0 ? (
+                    <>
+                      <p className="text-2xl font-bold">{topUsers[0].username}</p>
+                      <p className="text-lg text-primary">{topUsers[0].activity_count} голосов</p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Нет данных</p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Ваша активность</p>
                   <p className="text-3xl font-bold text-accent">{userActivity}</p>
-                  <p className="text-xs text-muted-foreground">до топа: {topUsers[0].activity - userActivity}</p>
+                  {topUsers.length > 0 && (
+                    <p className="text-xs text-muted-foreground">до топа: {topUsers[0].activity_count - userActivity}</p>
+                  )}
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6 space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Лучшее фото дня</p>
-                <img
-                  src={topPhotos[0].imageUrl}
-                  alt={topPhotos[0].category}
-                  className="w-full h-64 object-cover rounded-lg mb-2"
-                />
-                <div className="flex justify-between items-center">
-                  <span className="text-sm capitalize">{topPhotos[0].category}</span>
-                  <span className="text-lg font-bold text-primary">{topPhotos[0].rating} ★</span>
+            {topPhoto && (
+              <Card className="p-6 space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Лучшее фото дня</p>
+                  <img
+                    src={topPhoto.image_url}
+                    alt={topPhoto.category_name}
+                    className="w-full h-64 object-cover rounded-lg mb-2"
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm capitalize">{topPhoto.category_name}</span>
+                    <span className="text-lg font-bold text-primary">{topPhoto.rating} ★</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Ваш лучший: {userBestRating} ★</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Ваш лучший: 45 ★</p>
-              </div>
-            </Card>
+              </Card>
+            )}
           </>
         ) : (
           <>
             <Card className="p-6">
               <h2 className="text-xl font-bold mb-4">Топ активных участников</h2>
-              <div className="space-y-3">
-                {topUsers.map((user, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl font-bold text-primary">{index + 1}</span>
-                      <span className="font-medium">{user.username}</span>
+              {topUsers.length > 0 ? (
+                <div className="space-y-3">
+                  {topUsers.map((user, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-bold text-primary">{index + 1}</span>
+                        <span className="font-medium">{user.username}</span>
+                      </div>
+                      <span className="text-lg text-accent">{user.activity_count} голосов</span>
                     </div>
-                    <span className="text-lg text-accent">{user.activity} голосов</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-4">Нет данных об активности</p>
+              )}
               <div className="mt-4 p-4 bg-accent/10 rounded-lg text-center">
                 <p className="text-sm text-muted-foreground">Ваша активность</p>
                 <p className="text-3xl font-bold text-accent">{userActivity} голосов</p>
               </div>
             </Card>
 
-            <Card className="p-6">
-              <h2 className="text-xl font-bold mb-4">Лучшие работы по темам</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {topPhotos.map((photo, index) => (
-                  <div key={index} className="space-y-2">
-                    <img
-                      src={photo.imageUrl}
-                      alt={photo.category}
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                    <div className="flex justify-between items-center">
-                      <span className="capitalize font-medium">{photo.category}</span>
-                      <span className="text-primary font-bold">{photo.rating} ★</span>
+            {topPhotos.length > 0 && (
+              <Card className="p-6">
+                <h2 className="text-xl font-bold mb-4">Лучшие работы по темам</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {topPhotos.map((photo, index) => (
+                    <div key={index} className="space-y-2">
+                      <img
+                        src={photo.image_url}
+                        alt={photo.category_name}
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <div className="flex justify-between items-center">
+                        <span className="capitalize font-medium">{photo.category_name}</span>
+                        <span className="text-primary font-bold">{photo.rating} ★</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">Ваш лучший: {Math.floor(photo.rating * 0.3)} ★</p>
-                  </div>
-                ))}
-              </div>
-            </Card>
+                  ))}
+                </div>
+              </Card>
+            )}
           </>
         )}
 
