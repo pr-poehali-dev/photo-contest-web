@@ -17,7 +17,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
@@ -118,6 +118,32 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({'photo_id': photo_id, 'message': 'Photo uploaded successfully'}),
+            'isBase64Encoded': False
+        }
+    
+    elif method == 'DELETE':
+        params = event.get('queryStringParameters', {})
+        photo_id = params.get('photo_id')
+        
+        if not photo_id:
+            cur.close()
+            conn.close()
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Missing photo_id'}),
+                'isBase64Encoded': False
+            }
+        
+        cur.execute("DELETE FROM photos WHERE id = %s", (photo_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'message': 'Photo deleted successfully'}),
             'isBase64Encoded': False
         }
     
