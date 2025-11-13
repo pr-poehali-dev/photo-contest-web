@@ -3,52 +3,44 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
+import { api, compressImage } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfilePageProps {
   currentUser: string;
+  userId: number;
   onNavigate: (page: 'home' | 'profile' | 'vote') => void;
 }
 
 interface Category {
   id: number;
   name: string;
-  photos: Photo[];
+  photos: PhotoItem[];
 }
 
-interface Photo {
+interface PhotoItem {
   id: number;
-  imageUrl: string;
+  image_url: string;
   rating: number;
 }
 
-export default function ProfilePage({ currentUser, onNavigate }: ProfilePageProps) {
+const CATEGORY_MAP: Record<string, number> = {
+  'природа': 1,
+  'город': 2,
+  'животные': 3,
+  'люди': 4,
+  'разное': 5
+};
+
+const CATEGORIES = ['природа', 'город', 'животные', 'люди', 'разное'];
+
+export default function ProfilePage({ currentUser, userId, onNavigate }: ProfilePageProps) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [categories] = useState<Category[]>([
-    {
-      id: 1,
-      name: 'природа',
-      photos: [
-        { id: 1, imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4', rating: 45 },
-        { id: 2, imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e', rating: 32 },
-      ]
-    },
-    {
-      id: 2,
-      name: 'город',
-      photos: [
-        { id: 3, imageUrl: 'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b', rating: 28 },
-      ]
-    },
-    {
-      id: 3,
-      name: 'животные',
-      photos: []
-    },
-  ]);
-  const [userActivity] = useState(87);
-  const [topActivity] = useState(142);
-  const [userRank] = useState(5);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -56,8 +48,59 @@ export default function ProfilePage({ currentUser, onNavigate }: ProfilePageProp
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleFileUpload = (categoryId: number) => {
-    console.log('Upload to category:', categoryId);
+  useEffect(() => {
+    loadPhotos();
+  }, [userId]);
+
+  const loadPhotos = async () => {
+    try {
+      const photos = await api.getPhotos(userId);
+      
+      const categoriesData = CATEGORIES.map((name, index) => ({
+        id: index + 1,
+        name,
+        photos: photos.filter(p => p.category_id === index + 1).map(p => ({
+          id: p.id,
+          image_url: p.image_url,
+          rating: p.rating
+        }))
+      }));
+
+      setCategories(categoriesData);
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить фотографии',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (categoryId: number, file: File) => {
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const compressedImage = await compressImage(file);
+      await api.uploadPhoto(userId, categoryId, compressedImage);
+      
+      toast({
+        title: 'Успешно!',
+        description: 'Фотография загружена',
+      });
+
+      await loadPhotos();
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: error instanceof Error ? error.message : 'Не удалось загрузить фото',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const bestPhotoRatings: Record<string, number> = {
@@ -67,6 +110,14 @@ export default function ProfilePage({ currentUser, onNavigate }: ProfilePageProp
     'люди': 187,
     'разное': 165
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Загрузка...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -79,12 +130,7 @@ export default function ProfilePage({ currentUser, onNavigate }: ProfilePageProp
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">{currentUser}</h2>
-              <p className="text-sm text-muted-foreground">Место в рейтинге: {userRank}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Активность</p>
-              <p className="text-3xl font-bold text-accent">{userActivity}</p>
-              <p className="text-xs text-muted-foreground">Лидер: {topActivity}</p>
+              <p className="text-sm text-muted-foreground">ID: {userId}</p>
             </div>
           </div>
         </Card>
@@ -142,7 +188,7 @@ export default function ProfilePage({ currentUser, onNavigate }: ProfilePageProp
                           {category.photos.map(photo => (
                             <Card key={photo.id} className="overflow-hidden">
                               <img
-                                src={photo.imageUrl}
+                                src={photo.image_url}
                                 alt="Фото"
                                 className="w-full h-32 object-cover"
                               />
@@ -154,14 +200,20 @@ export default function ProfilePage({ currentUser, onNavigate }: ProfilePageProp
                           ))}
                           {category.photos.length < 6 && (
                             <Card className="flex items-center justify-center h-32 cursor-pointer hover:bg-secondary/50 transition-colors">
-                              <label className="cursor-pointer flex flex-col items-center">
+                              <label className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
                                 <Icon name="Plus" size={32} className="text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground mt-2">Добавить фото</span>
+                                <span className="text-xs text-muted-foreground mt-2">
+                                  {uploading ? 'Загрузка...' : 'Добавить фото'}
+                                </span>
                                 <Input
                                   type="file"
                                   accept="image/*"
                                   className="hidden"
-                                  onChange={() => handleFileUpload(category.id)}
+                                  disabled={uploading}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleFileUpload(category.id, file);
+                                  }}
                                 />
                               </label>
                             </Card>
@@ -185,7 +237,7 @@ export default function ProfilePage({ currentUser, onNavigate }: ProfilePageProp
                     {category.photos.map(photo => (
                       <div key={photo.id} className="space-y-2">
                         <img
-                          src={photo.imageUrl}
+                          src={photo.image_url}
                           alt="Фото"
                           className="w-full h-24 object-cover rounded-lg"
                         />
@@ -203,7 +255,11 @@ export default function ProfilePage({ currentUser, onNavigate }: ProfilePageProp
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={() => handleFileUpload(category.id)}
+                            disabled={uploading}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload(category.id, file);
+                            }}
                           />
                         </label>
                         <div className="text-center text-xs">

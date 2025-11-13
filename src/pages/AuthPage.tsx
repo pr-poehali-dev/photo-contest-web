@@ -2,20 +2,40 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { api } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthPageProps {
-  onLogin: (username: string) => void;
+  onLogin: (userId: number, username: string) => void;
 }
 
 export default function AuthPage({ onLogin }: AuthPageProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isRegister, setIsRegister] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (username.trim()) {
-      onLogin(username);
+    if (!username.trim() || !password.trim()) return;
+
+    setLoading(true);
+    try {
+      const user = await api.auth(username, password, isRegister ? 'register' : 'login');
+      toast({
+        title: isRegister ? 'Регистрация успешна!' : 'Вход выполнен!',
+        description: `Добро пожаловать, ${user.username}`,
+      });
+      onLogin(user.user_id, user.username);
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: error instanceof Error ? error.message : 'Что-то пошло не так',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,8 +67,8 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              {isRegister ? 'Зарегистрироваться' : 'Войти'}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Загрузка...' : isRegister ? 'Зарегистрироваться' : 'Войти'}
             </Button>
             <button
               type="button"

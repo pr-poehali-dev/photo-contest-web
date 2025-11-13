@@ -2,39 +2,34 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
+import { api } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface VotePageProps {
+  userId: number;
   onNavigate: (page: 'home' | 'profile' | 'vote') => void;
 }
 
 interface Photo {
   id: number;
-  imageUrl: string;
+  image_url: string;
+  rating: number;
+  views_count: number;
+}
+
+interface PhotoPair {
+  photo1: Photo;
+  photo2: Photo;
   category: string;
 }
 
-export default function VotePage({ onNavigate }: VotePageProps) {
+export default function VotePage({ userId, onNavigate }: VotePageProps) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [canVote, setCanVote] = useState(false);
   const [votingComplete, setVotingComplete] = useState(false);
-  const [photo1] = useState<Photo>({
-    id: 1,
-    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
-    category: 'природа'
-  });
-  const [photo2] = useState<Photo>({
-    id: 2,
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e',
-    category: 'природа'
-  });
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCanVote(true);
-    }, 7000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const [photoPair, setPhotoPair] = useState<PhotoPair | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -42,11 +37,69 @@ export default function VotePage({ onNavigate }: VotePageProps) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleVote = (photoId: number) => {
-    if (!canVote) return;
-    console.log('Voted for photo:', photoId);
-    setVotingComplete(true);
+  useEffect(() => {
+    loadPhotoPair();
+  }, [userId]);
+
+  useEffect(() => {
+    if (photoPair) {
+      setCanVote(false);
+      const timer = setTimeout(() => {
+        setCanVote(true);
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [photoPair]);
+
+  const loadPhotoPair = async () => {
+    try {
+      const pair = await api.getVotingPair(userId);
+      
+      if ('completed' in pair && pair.completed) {
+        setVotingComplete(true);
+      } else {
+        setPhotoPair(pair as PhotoPair);
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить фотографии для голосования',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleVote = async (photoId: number) => {
+    if (!canVote || !photoPair) return;
+
+    try {
+      await api.submitVote(userId, photoPair.photo1.id, photoPair.photo2.id, photoId);
+      
+      toast({
+        title: 'Голос учтён!',
+        description: '+1 к вашей активности',
+      });
+
+      setLoading(true);
+      await loadPhotoPair();
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось отправить голос',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Загрузка...</p>
+      </div>
+    );
+  }
 
   if (votingComplete) {
     return (
@@ -67,6 +120,14 @@ export default function VotePage({ onNavigate }: VotePageProps) {
             </div>
           </Card>
         </div>
+      </div>
+    );
+  }
+
+  if (!photoPair) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Нет доступных фото для голосования</p>
       </div>
     );
   }
@@ -110,12 +171,12 @@ export default function VotePage({ onNavigate }: VotePageProps) {
       ) : (
         <div className="flex-1 flex">
           <button
-            onClick={() => handleVote(photo1.id)}
+            onClick={() => handleVote(photoPair.photo1.id)}
             disabled={!canVote}
             className={`flex-1 relative overflow-hidden transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
           >
             <img
-              src={photo1.imageUrl}
+              src={photoPair.photo1.image_url}
               alt="Фото 1"
               className="w-full h-full object-cover"
             />
@@ -126,12 +187,12 @@ export default function VotePage({ onNavigate }: VotePageProps) {
             )}
           </button>
           <button
-            onClick={() => handleVote(photo2.id)}
+            onClick={() => handleVote(photoPair.photo2.id)}
             disabled={!canVote}
             className={`flex-1 relative overflow-hidden transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
           >
             <img
-              src={photo2.imageUrl}
+              src={photoPair.photo2.image_url}
               alt="Фото 2"
               className="w-full h-full object-cover"
             />
@@ -139,7 +200,8 @@ export default function VotePage({ onNavigate }: VotePageProps) {
         </div>
       )}
 
-      <div className="p-4 bg-secondary/50 flex gap-4 justify-center">
+      <div className="p-4 bg-secondary/50 flex gap-4 justify-center items-center">
+        <p className="text-sm text-muted-foreground capitalize">Тема: {photoPair.category}</p>
         <Button onClick={() => onNavigate('home')} variant="secondary" size="sm">
           <Icon name="Home" size={16} className="mr-2" />
           На главную

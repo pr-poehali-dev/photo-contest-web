@@ -15,8 +15,10 @@ type Page = 'auth' | 'home' | 'profile' | 'vote';
 const App = () => {
   const [currentPage, setCurrentPage] = useState<Page>('auth');
   const [currentUser, setCurrentUser] = useState<string>('');
+  const [userId, setUserId] = useState<number>(0);
 
-  const handleLogin = (username: string) => {
+  const handleLogin = (id: number, username: string) => {
+    setUserId(id);
     setCurrentUser(username);
     setCurrentPage('home');
   };
@@ -31,9 +33,9 @@ const App = () => {
         <Toaster />
         <Sonner />
         {currentPage === 'auth' && <AuthPage onLogin={handleLogin} />}
-        {currentPage === 'home' && <HomePage currentUser={currentUser} onNavigate={handleNavigate} />}
-        {currentPage === 'vote' && <VotePage onNavigate={handleNavigate} />}
-        {currentPage === 'profile' && <ProfilePage currentUser={currentUser} onNavigate={handleNavigate} />}
+        {currentPage === 'home' && <HomePage currentUser={currentUser} userId={userId} onNavigate={handleNavigate} />}
+        {currentPage === 'vote' && <VotePage userId={userId} onNavigate={handleNavigate} />}
+        {currentPage === 'profile' && <ProfilePage currentUser={currentUser} userId={userId} onNavigate={handleNavigate} />}
       </TooltipProvider>
     </QueryClientProvider>
   );
