@@ -78,6 +78,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
+        if len(image_url) > 500000:
+            cur.close()
+            conn.close()
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Image too large (max 500KB in base64)'}),
+                'isBase64Encoded': False
+            }
+        
         cur.execute(
             "SELECT COUNT(*) as count FROM photos WHERE user_id = %s AND category_id = %s",
             (user_id, category_id)
