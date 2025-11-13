@@ -6,7 +6,7 @@ from psycopg2.extras import RealDictCursor
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Business: Batch load multiple images by IDs (up to 20 at once)
+    Business: Batch load multiple images by IDs (up to 10 at once)
     Args: event with httpMethod GET, query param photo_ids (comma-separated)
     Returns: HTTP response with dict of {photo_id: image_url}
     '''
@@ -54,11 +54,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    if len(photo_ids) > 20:
+    if len(photo_ids) > 10:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Maximum 20 photo IDs per request'}),
+            'body': json.dumps({'error': 'Maximum 10 photo IDs per request'}),
             'isBase64Encoded': False
         }
     

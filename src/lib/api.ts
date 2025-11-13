@@ -57,14 +57,23 @@ async function loadImagesBatch(photoIds: number[]): Promise<Record<string, strin
   if (photoIds.length === 0) return {};
   if (!API_URLS.imagesBatch) return {};
   
-  try {
-    const response = await fetch(`${API_URLS.imagesBatch}?photo_ids=${photoIds.join(',')}`);
-    if (!response.ok) return {};
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to load images batch:', error);
-    return {};
+  const BATCH_SIZE = 10;
+  const allImages: Record<string, string> = {};
+  
+  for (let i = 0; i < photoIds.length; i += BATCH_SIZE) {
+    const batch = photoIds.slice(i, i + BATCH_SIZE);
+    try {
+      const response = await fetch(`${API_URLS.imagesBatch}?photo_ids=${batch.join(',')}`);
+      if (response.ok) {
+        const batchImages = await response.json();
+        Object.assign(allImages, batchImages);
+      }
+    } catch (error) {
+      console.error(`Failed to load batch ${i / BATCH_SIZE + 1}:`, error);
+    }
   }
+  
+  return allImages;
 }
 
 export const api = {
