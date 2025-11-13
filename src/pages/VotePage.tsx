@@ -165,35 +165,39 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
       </header>
 
       {isMobile ? (
-        <div className="flex-1 flex flex-col min-h-0 relative">
+        <div className="flex-1 flex flex-col gap-2 p-2 min-h-0 relative">
           <button
             onClick={() => handleVote(photoPair.photo1.id)}
             disabled={!canVote}
             className={`flex-1 relative overflow-hidden ${!canVote ? 'cursor-not-allowed' : ''}`}
           >
-            <img
-              src={photoPair.photo1.image_url}
-              alt="Фото 1"
-              className="w-full h-full object-cover"
-            />
+            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-4">
+              <img
+                src={photoPair.photo1.image_url}
+                alt="Фото 1"
+                className="max-w-full max-h-full object-contain rounded"
+              />
+            </div>
           </button>
           <button
             onClick={() => handleVote(photoPair.photo2.id)}
             disabled={!canVote}
             className={`flex-1 relative overflow-hidden ${!canVote ? 'cursor-not-allowed' : ''}`}
           >
-            <img
-              src={photoPair.photo2.image_url}
-              alt="Фото 2"
-              className="w-full h-full object-cover"
-            />
+            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-4">
+              <img
+                src={photoPair.photo2.image_url}
+                alt="Фото 2"
+                className="max-w-full max-h-full object-contain rounded"
+              />
+            </div>
           </button>
           
           {!canVote && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              <div className="bg-gray-800 rounded-lg px-4 py-3 flex flex-col items-center gap-1 shadow-2xl">
-                <p className="text-gray-300 text-sm font-medium">Оцените фото</p>
-                <div className="text-2xl font-bold text-white">{timeLeft}</div>
+              <div className="bg-gray-800 rounded-lg px-3 py-2 flex flex-col items-center gap-1 shadow-2xl">
+                <p className="text-gray-300 text-xs font-medium">Оцените фото</p>
+                <div className="text-xl font-bold text-white">{timeLeft}</div>
               </div>
             </div>
           )}
