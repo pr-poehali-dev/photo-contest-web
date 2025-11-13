@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
@@ -30,6 +30,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
   const [loading, setLoading] = useState(true);
   const [photoPair, setPhotoPair] = useState<PhotoPair | null>(null);
   const [timeLeft, setTimeLeft] = useState(7);
+  const loadedRef = useRef(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -39,10 +40,11 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
   }, []);
 
   useEffect(() => {
-    if (userId > 0 && !photoPair && !votingComplete) {
+    if (!loadedRef.current && userId > 0) {
+      loadedRef.current = true;
       loadPhotoPair();
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     if (photoPair) {
