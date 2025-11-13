@@ -147,14 +147,19 @@ export default function HomePage({ currentUser, userId, onNavigate }: HomePagePr
             {topPhotos.length > 0 && (
               <Card className="p-6">
                 <h2 className="text-xl font-bold mb-4">Лучшие работы по темам</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {topPhotos.map((photo, index) => (
                     <div key={index} className="space-y-2">
-                      <img
-                        src={photo.thumbnail_url || photo.image_url}
-                        alt={photo.category_name}
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
+                      <div className="relative bg-gray-800 rounded-lg h-80 flex items-center justify-center p-8">
+                        <img
+                          src={photo.thumbnail_url || photo.image_url}
+                          alt={photo.category_name}
+                          className="max-w-full max-h-full object-contain rounded"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <p className="text-gray-400 text-sm font-medium">подождите 7 секунд</p>
+                        </div>
+                      </div>
                       <div className="flex justify-between items-center">
                         <span className="capitalize font-medium">{photo.category_name}</span>
                         <span className="text-primary font-bold">{photo.rating} ★</span>
