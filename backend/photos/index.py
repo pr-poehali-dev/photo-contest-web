@@ -33,23 +33,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         params = event.get('queryStringParameters', {})
         user_id = params.get('user_id')
         
-        if user_id:
-            cur.execute("""
-                SELECT p.id, p.image_url, p.rating, c.name as category_name, c.id as category_id
-                FROM photos p
-                JOIN categories c ON p.category_id = c.id
-                WHERE p.user_id = %s
-                ORDER BY c.display_order, p.created_at
-            """, (user_id,))
-        else:
-            cur.execute("""
-                SELECT p.id, p.rating, c.name as category_name, c.id as category_id, u.username
-                FROM photos p
-                JOIN categories c ON p.category_id = c.id
-                JOIN users u ON p.user_id = u.id
-                ORDER BY p.rating DESC
-                LIMIT 50
-            """)
+        cur.execute("""
+            SELECT p.id, p.rating, c.name as category_name, c.id as category_id
+            FROM photos p
+            JOIN categories c ON p.category_id = c.id
+            WHERE p.user_id = %s
+            ORDER BY c.display_order, p.created_at
+        """, (user_id,)) if user_id else cur.execute("""
+            SELECT p.id, p.rating, c.name as category_name, c.id as category_id, u.username
+            FROM photos p
+            JOIN categories c ON p.category_id = c.id
+            JOIN users u ON p.user_id = u.id
+            ORDER BY p.rating DESC
+            LIMIT 50
+        """)
         
         photos = cur.fetchall()
         cur.close()
