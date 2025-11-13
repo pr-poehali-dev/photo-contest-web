@@ -109,6 +109,27 @@ export default function ProfilePage({ currentUser, userId, onNavigate }: Profile
     }
   };
 
+  const handleDeletePhoto = async (photoId: number) => {
+    if (!confirm('Удалить это фото?')) return;
+
+    try {
+      await api.deletePhoto(photoId);
+      
+      toast({
+        title: 'Успешно!',
+        description: 'Фотография удалена',
+      });
+
+      await loadPhotos();
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: error instanceof Error ? error.message : 'Не удалось удалить фото',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const bestPhotoRatings: Record<string, number> = {
     'природа': 245,
     'город': 223,
@@ -192,12 +213,20 @@ export default function ProfilePage({ currentUser, userId, onNavigate }: Profile
                         <h3 className="text-xl font-bold capitalize">{category.name}</h3>
                         <div className="grid grid-cols-2 gap-4">
                           {category.photos.map(photo => (
-                            <Card key={photo.id} className="overflow-hidden">
+                            <Card key={photo.id} className="overflow-hidden relative group">
                               <img
                                 src={photo.image_url}
                                 alt="Фото"
                                 className="w-full h-32 object-cover"
                               />
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => handleDeletePhoto(photo.id)}
+                              >
+                                <Icon name="Trash2" size={16} />
+                              </Button>
                               <div className="p-2 text-center">
                                 <p className="text-sm font-bold text-primary">{photo.rating} ★</p>
                                 <p className="text-xs text-muted-foreground">Лучший: {globalBest} ★</p>
@@ -241,12 +270,22 @@ export default function ProfilePage({ currentUser, userId, onNavigate }: Profile
                   <h4 className="text-lg font-bold capitalize mb-4">{category.name}</h4>
                   <div className="grid grid-cols-6 gap-4">
                     {category.photos.map(photo => (
-                      <div key={photo.id} className="space-y-2">
-                        <img
-                          src={photo.image_url}
-                          alt="Фото"
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
+                      <div key={photo.id} className="space-y-2 relative group">
+                        <div className="relative">
+                          <img
+                            src={photo.image_url}
+                            alt="Фото"
+                            className="w-full h-24 object-cover rounded-lg"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto"
+                            onClick={() => handleDeletePhoto(photo.id)}
+                          >
+                            <Icon name="Trash2" size={14} />
+                          </Button>
+                        </div>
                         <div className="text-center text-xs">
                           <p className="font-bold text-primary">{photo.rating}</p>
                           <p className="text-muted-foreground">{globalBest}</p>

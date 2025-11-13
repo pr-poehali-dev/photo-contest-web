@@ -154,6 +154,17 @@ export const api = {
     return response.json();
   },
 
+  async deletePhoto(photoId: number): Promise<void> {
+    const response = await fetch(`${API_URLS.photos}?photo_id=${photoId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Delete failed');
+    }
+  },
+
   async getVotingPair(userId: number): Promise<PhotoPair> {
     const response = await fetch(`${API_URLS.voting}?user_id=${userId}`);
     if (!response.ok) throw new Error('Failed to fetch voting pair');
