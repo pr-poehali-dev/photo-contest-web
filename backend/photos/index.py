@@ -135,6 +135,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
+        cur.execute(
+            "DELETE FROM votes WHERE photo1_id = %s OR photo2_id = %s OR winner_photo_id = %s",
+            (photo_id, photo_id, photo_id)
+        )
+        cur.execute(
+            "DELETE FROM shown_photos WHERE photo_id = %s",
+            (photo_id,)
+        )
         cur.execute("DELETE FROM photos WHERE id = %s", (photo_id,))
         conn.commit()
         cur.close()
