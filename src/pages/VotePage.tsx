@@ -28,7 +28,10 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
   const [canVote, setCanVote] = useState(false);
   const [votingComplete, setVotingComplete] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [photoPair, setPhotoPair] = useState<PhotoPair | null>(null);
+  const [photoPair, setPhotoPair] = useState<PhotoPair | null>(() => {
+    const saved = sessionStorage.getItem('currentPhotoPair');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [timeLeft, setTimeLeft] = useState(7);
   const loadedRef = useRef(false);
   const { toast } = useToast();
@@ -40,9 +43,17 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
   }, []);
 
   useEffect(() => {
-    if (!loadedRef.current && userId > 0) {
+    if (photoPair) {
+      sessionStorage.setItem('currentPhotoPair', JSON.stringify(photoPair));
+    }
+  }, [photoPair]);
+
+  useEffect(() => {
+    if (!loadedRef.current && userId > 0 && !photoPair) {
       loadedRef.current = true;
       loadPhotoPair();
+    } else if (photoPair) {
+      setLoading(false);
     }
   }, [userId]);
 
@@ -97,6 +108,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
         description: '+1 к вашей активности',
       });
 
+      sessionStorage.removeItem('currentPhotoPair');
       await loadPhotoPair();
     } catch (error) {
       toast({
