@@ -169,33 +169,37 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
           </button>
         </div>
       ) : (
-        <div className="flex-1 flex">
+        <div className="flex-1 flex items-center justify-center gap-8 p-8">
           <button
             onClick={() => handleVote(photoPair.photo1.id)}
             disabled={!canVote}
-            className={`flex-1 relative overflow-hidden transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
+            className={`relative transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
           >
-            <img
-              src={photoPair.photo1.image_url}
-              alt="Фото 1"
-              className="w-full h-full object-cover"
-            />
-            {!canVote && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                <p className="text-white text-2xl font-bold">Подождите 7 секунд...</p>
-              </div>
-            )}
+            <div className="bg-gray-700 rounded-lg p-16 flex items-center justify-center h-96">
+              <img
+                src={photoPair.photo1.image_url}
+                alt="Фото 1"
+                className="max-w-[240px] max-h-[240px] object-contain rounded"
+              />
+              {!canVote && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <p className="text-gray-400 text-lg font-medium">подождите 7 секунд</p>
+                </div>
+              )}
+            </div>
           </button>
           <button
             onClick={() => handleVote(photoPair.photo2.id)}
             disabled={!canVote}
-            className={`flex-1 relative overflow-hidden transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
+            className={`relative transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
           >
-            <img
-              src={photoPair.photo2.image_url}
-              alt="Фото 2"
-              className="w-full h-full object-cover"
-            />
+            <div className="bg-gray-700 rounded-lg p-16 flex items-center justify-center h-96">
+              <img
+                src={photoPair.photo2.image_url}
+                alt="Фото 2"
+                className="max-w-[240px] max-h-[240px] object-contain rounded"
+              />
+            </div>
           </button>
         </div>
       )}
