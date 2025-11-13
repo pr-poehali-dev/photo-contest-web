@@ -35,7 +35,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         if user_id:
             cur.execute("""
-                SELECT p.id, p.rating, c.name as category_name, c.id as category_id
+                SELECT p.id, p.image_url, p.rating, c.name as category_name, c.id as category_id
                 FROM photos p
                 JOIN categories c ON p.category_id = c.id
                 WHERE p.user_id = %s

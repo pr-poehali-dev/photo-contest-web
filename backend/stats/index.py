@@ -50,7 +50,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     top_users = cur.fetchall()
     
     cur.execute("""
-        SELECT p.id, p.rating, c.name as category_name, u.username
+        SELECT p.id, p.image_url, p.rating, c.name as category_name, u.username
         FROM photos p
         JOIN categories c ON p.category_id = c.id
         JOIN users u ON p.user_id = u.id
@@ -69,7 +69,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     top_photos_by_category = []
     for category in categories:
         cur.execute("""
-            SELECT p.id, p.rating, c.name as category_name, u.username
+            SELECT p.id, p.image_url, p.rating, c.name as category_name, u.username
             FROM photos p
             JOIN categories c ON p.category_id = c.id
             JOIN users u ON p.user_id = u.id

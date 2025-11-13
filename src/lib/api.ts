@@ -75,20 +75,7 @@ export const api = {
     
     const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch photos');
-    const photos = await response.json();
-    
-    const photosWithImages = await Promise.all(
-      photos.map(async (photo: Photo) => {
-        const imageResponse = await fetch(`${API_URLS.image}?photo_id=${photo.id}`);
-        if (imageResponse.ok) {
-          const { image_url } = await imageResponse.json();
-          return { ...photo, image_url };
-        }
-        return photo;
-      })
-    );
-    
-    return photosWithImages;
+    return response.json();
   },
 
   async uploadPhoto(userId: number, categoryId: number, imageUrl: string): Promise<{ photo_id: number }> {
@@ -109,25 +96,7 @@ export const api = {
   async getVotingPair(userId: number): Promise<PhotoPair> {
     const response = await fetch(`${API_URLS.voting}?user_id=${userId}`);
     if (!response.ok) throw new Error('Failed to fetch voting pair');
-    const pair = await response.json();
-    
-    if (pair.completed) return pair;
-    
-    const [img1Response, img2Response] = await Promise.all([
-      fetch(`${API_URLS.image}?photo_id=${pair.photo1.id}`),
-      fetch(`${API_URLS.image}?photo_id=${pair.photo2.id}`)
-    ]);
-    
-    const [img1Data, img2Data] = await Promise.all([
-      img1Response.json(),
-      img2Response.json()
-    ]);
-    
-    return {
-      ...pair,
-      photo1: { ...pair.photo1, image_url: img1Data.image_url },
-      photo2: { ...pair.photo2, image_url: img2Data.image_url }
-    };
+    return response.json();
   },
 
   async submitVote(userId: number, photo1Id: number, photo2Id: number, winnerPhotoId: number): Promise<void> {
@@ -155,36 +124,7 @@ export const api = {
     
     const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch stats');
-    const stats = await response.json();
-    
-    const imagePromises = [];
-    
-    if (stats.top_photo?.id) {
-      imagePromises.push(
-        fetch(`${API_URLS.image}?photo_id=${stats.top_photo.id}`)
-          .then(r => r.json())
-          .then(data => ({ ...stats.top_photo, image_url: data.image_url }))
-      );
-    }
-    
-    const categoryImagePromises = stats.top_photos_by_category
-      .filter((p: TopPhoto) => p?.id)
-      .map((photo: TopPhoto) =>
-        fetch(`${API_URLS.image}?photo_id=${photo.id}`)
-          .then(r => r.json())
-          .then(data => ({ ...photo, image_url: data.image_url }))
-      );
-    
-    const [topPhoto, ...categoryPhotos] = await Promise.all([
-      ...imagePromises,
-      ...categoryImagePromises
-    ]);
-    
-    return {
-      ...stats,
-      top_photo: topPhoto || stats.top_photo,
-      top_photos_by_category: categoryPhotos.length > 0 ? categoryPhotos : stats.top_photos_by_category
-    };
+    return response.json();
   },
 };
 
