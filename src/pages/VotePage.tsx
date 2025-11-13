@@ -133,20 +133,20 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-secondary/50 py-2 px-4 text-center">
+    <div className="h-screen flex flex-col overflow-hidden">
+      <header className="bg-secondary/50 py-2 px-4 text-center flex-shrink-0">
         <p className="text-xs text-muted-foreground">Уроки Фотографии Рожнов Сергей</p>
       </header>
 
       {isMobile ? (
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           <button
-            onClick={() => handleVote(photo1.id)}
+            onClick={() => handleVote(photoPair.photo1.id)}
             disabled={!canVote}
             className={`flex-1 relative overflow-hidden transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
           >
             <img
-              src={photo1.imageUrl}
+              src={photoPair.photo1.image_url}
               alt="Фото 1"
               className="w-full h-full object-cover"
             />
@@ -157,19 +157,19 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
             )}
           </button>
           <button
-            onClick={() => handleVote(photo2.id)}
+            onClick={() => handleVote(photoPair.photo2.id)}
             disabled={!canVote}
             className={`flex-1 relative overflow-hidden transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
           >
             <img
-              src={photo2.imageUrl}
+              src={photoPair.photo2.image_url}
               alt="Фото 2"
               className="w-full h-full object-cover"
             />
           </button>
         </div>
       ) : (
-        <div className="flex-1 flex gap-4 p-4">
+        <div className="flex-1 flex gap-4 p-4 min-h-0">
           <button
             onClick={() => handleVote(photoPair.photo1.id)}
             disabled={!canVote}
@@ -204,7 +204,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
         </div>
       )}
 
-      <div className="p-4 bg-secondary/50 flex gap-4 justify-center items-center">
+      <div className="p-4 bg-secondary/50 flex gap-4 justify-center items-center flex-shrink-0">
         <p className="text-sm text-muted-foreground capitalize">Тема: {photoPair.category}</p>
         <Button onClick={() => onNavigate('home')} variant="secondary" size="sm">
           <Icon name="Home" size={16} className="mr-2" />
