@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,9 +13,24 @@ const queryClient = new QueryClient();
 type Page = 'auth' | 'home' | 'profile' | 'vote';
 
 const App = () => {
-  const [currentPage, setCurrentPage] = useState<Page>('auth');
-  const [currentUser, setCurrentUser] = useState<string>('');
-  const [userId, setUserId] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<Page>(() => {
+    const savedUserId = localStorage.getItem('userId');
+    return savedUserId ? 'home' : 'auth';
+  });
+  const [currentUser, setCurrentUser] = useState<string>(() => {
+    return localStorage.getItem('username') || '';
+  });
+  const [userId, setUserId] = useState<number>(() => {
+    const savedUserId = localStorage.getItem('userId');
+    return savedUserId ? parseInt(savedUserId) : 0;
+  });
+
+  useEffect(() => {
+    if (userId > 0) {
+      localStorage.setItem('userId', userId.toString());
+      localStorage.setItem('username', currentUser);
+    }
+  }, [userId, currentUser]);
 
   const handleLogin = (id: number, username: string) => {
     setUserId(id);
