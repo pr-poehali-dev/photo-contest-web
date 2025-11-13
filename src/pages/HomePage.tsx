@@ -150,11 +150,11 @@ export default function HomePage({ currentUser, userId, onNavigate }: HomePagePr
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {topPhotos.map((photo, index) => (
                     <div key={index} className="space-y-2">
-                      <div className="relative bg-gray-800 rounded-lg h-80 flex items-center justify-center p-8">
+                      <div className="relative bg-gray-700 rounded-lg aspect-square flex items-center justify-center p-12">
                         <img
                           src={photo.thumbnail_url || photo.image_url}
                           alt={photo.category_name}
-                          className="max-w-full max-h-full object-contain rounded"
+                          className="w-full h-full object-contain rounded"
                         />
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                           <p className="text-gray-400 text-sm font-medium">подождите 7 секунд</p>
