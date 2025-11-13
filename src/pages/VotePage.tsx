@@ -93,7 +93,6 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
         description: '+1 к вашей активности',
       });
 
-      setLoading(true);
       await loadPhotoPair();
     } catch (error) {
       toast({
@@ -198,9 +197,9 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
           
           {!canVote && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              <div className="bg-gray-800 rounded-2xl px-12 py-8 flex flex-col items-center gap-4 shadow-2xl">
-                <p className="text-gray-300 text-2xl font-medium">Оцените фото</p>
-                <div className="text-7xl font-bold text-white">{timeLeft}</div>
+              <div className="bg-gray-800 rounded-xl px-6 py-4 flex flex-col items-center gap-2 shadow-2xl">
+                <p className="text-gray-300 text-base font-medium">Оцените фото</p>
+                <div className="text-3xl font-bold text-white">{timeLeft}</div>
               </div>
             </div>
           )}
