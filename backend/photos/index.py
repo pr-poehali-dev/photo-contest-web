@@ -67,6 +67,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         user_id = body_data.get('user_id')
         category_id = body_data.get('category_id')
         image_url = body_data.get('image_url')
+        thumbnail_url = body_data.get('thumbnail_url', '')
         
         if not all([user_id, category_id, image_url]):
             cur.close()
@@ -105,8 +106,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         cur.execute(
-            "INSERT INTO photos (user_id, category_id, image_url) VALUES (%s, %s, %s) RETURNING id",
-            (user_id, category_id, image_url)
+            "INSERT INTO photos (user_id, category_id, image_url, thumbnail_url) VALUES (%s, %s, %s, %s) RETURNING id",
+            (user_id, category_id, image_url, thumbnail_url)
         )
         photo_id = cur.fetchone()['id']
         conn.commit()

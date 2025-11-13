@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "Get thumbnail success",
+      "method": "GET",
+      "path": "/?photo_id=1",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Missing photo_id param",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

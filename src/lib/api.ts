@@ -5,6 +5,7 @@ const API_URLS = {
   stats: 'https://functions.poehali.dev/94255665-2b47-4d9e-a41e-072304fe9b76',
   image: 'https://functions.poehali.dev/4a49a45d-b55f-4cc7-b375-49ac3d349cf9',
   imagesBatch: 'https://functions.poehali.dev/79427aea-8039-448c-999d-29018cf9ec9e',
+  thumbnail: 'https://functions.poehali.dev/7dc9a7ac-9229-433e-8ca9-7627d247a291',
 };
 
 export interface User {
@@ -15,6 +16,7 @@ export interface User {
 export interface Photo {
   id: number;
   image_url?: string;
+  thumbnail_url?: string;
   rating: number;
   category_name: string;
   category_id: number;
@@ -36,6 +38,7 @@ export interface TopUser {
 export interface TopPhoto {
   id: number;
   image_url: string;
+  thumbnail_url?: string;
   rating: number;
   category_name: string;
   username: string;
@@ -51,6 +54,27 @@ export interface Stats {
     rank: number | null;
     photos_by_category: Record<string, number>;
   };
+}
+
+async function loadThumbnailsBatch(photoIds: number[]): Promise<Record<string, string>> {
+  if (photoIds.length === 0) return {};
+  
+  const results = await Promise.all(
+    photoIds.map(async (id) => {
+      try {
+        const response = await fetch(`${API_URLS.thumbnail}?photo_id=${id}`);
+        if (response.ok) {
+          const { thumbnail_url } = await response.json();
+          return { id: id.toString(), url: thumbnail_url };
+        }
+      } catch (error) {
+        console.error(`Failed to load thumbnail ${id}:`, error);
+      }
+      return { id: id.toString(), url: '' };
+    })
+  );
+  
+  return Object.fromEntries(results.map(r => [r.id, r.url]));
 }
 
 async function loadImagesBatch(photoIds: number[]): Promise<Record<string, string>> {
@@ -102,19 +126,24 @@ export const api = {
     if (photos.length === 0) return [];
     
     const photoIds = photos.map((p: Photo) => p.id);
-    const images = await loadImagesBatch(photoIds);
+    const thumbnails = await loadThumbnailsBatch(photoIds);
     
     return photos.map((photo: Photo) => ({
       ...photo,
-      image_url: images[photo.id.toString()] || ''
+      thumbnail_url: thumbnails[photo.id.toString()] || ''
     }));
   },
 
-  async uploadPhoto(userId: number, categoryId: number, imageUrl: string): Promise<{ photo_id: number }> {
+  async uploadPhoto(userId: number, categoryId: number, imageUrl: string, thumbnailUrl: string): Promise<{ photo_id: number }> {
     const response = await fetch(API_URLS.photos, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, category_id: categoryId, image_url: imageUrl }),
+      body: JSON.stringify({ 
+        user_id: userId, 
+        category_id: categoryId, 
+        image_url: imageUrl,
+        thumbnail_url: thumbnailUrl 
+      }),
     });
 
     if (!response.ok) {
@@ -176,20 +205,73 @@ export const api = {
     
     if (photoIds.length === 0) return stats;
     
-    const images = await loadImagesBatch(photoIds);
+    const thumbnails = await loadThumbnailsBatch(photoIds);
     
     return {
       ...stats,
       top_photo: stats.top_photo 
-        ? { ...stats.top_photo, image_url: images[stats.top_photo.id.toString()] || '' }
+        ? { ...stats.top_photo, thumbnail_url: thumbnails[stats.top_photo.id.toString()] || '' }
         : null,
       top_photos_by_category: stats.top_photos_by_category.map((p: TopPhoto) => ({
         ...p,
-        image_url: images[p.id.toString()] || ''
+        thumbnail_url: thumbnails[p.id.toString()] || ''
       }))
     };
   },
 };
+
+export async function createThumbnail(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        const maxSize = 200;
+        if (width > height && width > maxSize) {
+          height = (height * maxSize) / width;
+          width = maxSize;
+        } else if (height > maxSize) {
+          width = (width * maxSize) / height;
+          height = maxSize;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas context not available'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error('Thumbnail creation failed'));
+              return;
+            }
+            const thumbnailReader = new FileReader();
+            thumbnailReader.readAsDataURL(blob);
+            thumbnailReader.onloadend = () => {
+              resolve(thumbnailReader.result as string);
+            };
+          },
+          'image/jpeg',
+          0.6
+        );
+      };
+    };
+    reader.onerror = reject;
+  });
+}
 
 export async function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

@@ -49,7 +49,7 @@ export default function HomePage({ currentUser, userId, onNavigate }: HomePagePr
       setUserActivity(stats.user_stats.activity);
       setUserBestRating(stats.user_stats.best_photo_rating);
       setTopPhoto(stats.top_photo);
-      setTopPhotos(stats.top_photos_by_category.filter(p => p.image_url));
+      setTopPhotos(stats.top_photos_by_category.filter(p => p.thumbnail_url || p.image_url));
     } catch (error) {
       toast({
         title: 'Ошибка',
@@ -106,7 +106,7 @@ export default function HomePage({ currentUser, userId, onNavigate }: HomePagePr
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">Лучшее фото дня</p>
                   <img
-                    src={topPhoto.image_url}
+                    src={topPhoto.thumbnail_url || topPhoto.image_url}
                     alt={topPhoto.category_name}
                     className="w-full h-64 object-cover rounded-lg mb-2"
                   />
@@ -151,7 +151,7 @@ export default function HomePage({ currentUser, userId, onNavigate }: HomePagePr
                   {topPhotos.map((photo, index) => (
                     <div key={index} className="space-y-2">
                       <img
-                        src={photo.image_url}
+                        src={photo.thumbnail_url || photo.image_url}
                         alt={photo.category_name}
                         className="w-full h-48 object-cover rounded-lg"
                       />

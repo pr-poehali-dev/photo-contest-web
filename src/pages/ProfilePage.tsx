@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
-import { api, compressImage } from '@/lib/api';
+import { api, compressImage, createThumbnail } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProfilePageProps {
@@ -62,7 +62,7 @@ export default function ProfilePage({ currentUser, userId, onNavigate }: Profile
         name,
         photos: photos.filter(p => p.category_id === index + 1).map(p => ({
           id: p.id,
-          image_url: p.image_url || '',
+          image_url: p.thumbnail_url || '',
           rating: p.rating
         }))
       }));
@@ -85,8 +85,12 @@ export default function ProfilePage({ currentUser, userId, onNavigate }: Profile
 
     setUploading(true);
     try {
-      const compressedImage = await compressImage(file);
-      await api.uploadPhoto(userId, categoryId, compressedImage);
+      const [compressedImage, thumbnail] = await Promise.all([
+        compressImage(file),
+        createThumbnail(file)
+      ]);
+      
+      await api.uploadPhoto(userId, categoryId, compressedImage, thumbnail);
       
       toast({
         title: 'Успешно!',
