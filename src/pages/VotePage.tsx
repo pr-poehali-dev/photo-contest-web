@@ -181,11 +181,11 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
           </button>
         </div>
       ) : (
-        <div className="flex-1 flex gap-4 p-4 min-h-0">
+        <div className="flex-1 flex gap-4 p-4 min-h-0 relative">
           <button
             onClick={() => handleVote(photoPair.photo1.id)}
             disabled={!canVote}
-            className={`flex-1 relative transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
+            className={`flex-1 relative transition-opacity ${!canVote ? 'cursor-not-allowed' : 'hover:opacity-90'}`}
           >
             <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-20">
               <img
@@ -193,18 +193,22 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
                 alt="Фото 1"
                 className="max-w-full max-h-full object-contain rounded"
               />
-              {!canVote && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-4">
-                  <p className="text-gray-400 text-xl font-medium">подождите</p>
-                  <div className="text-6xl font-bold text-gray-300">{timeLeft}</div>
-                </div>
-              )}
             </div>
           </button>
+          
+          {!canVote && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+              <div className="bg-gray-800 rounded-2xl px-12 py-8 flex flex-col items-center gap-4 shadow-2xl">
+                <p className="text-gray-300 text-2xl font-medium">Оцените фото</p>
+                <div className="text-7xl font-bold text-white">{timeLeft}</div>
+              </div>
+            </div>
+          )}
+          
           <button
             onClick={() => handleVote(photoPair.photo2.id)}
             disabled={!canVote}
-            className={`flex-1 relative transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
+            className={`flex-1 relative transition-opacity ${!canVote ? 'cursor-not-allowed' : 'hover:opacity-90'}`}
           >
             <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-20">
               <img
