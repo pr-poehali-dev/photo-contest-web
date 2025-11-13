@@ -169,21 +169,21 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
           </button>
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center gap-8 p-8">
+        <div className="flex-1 flex gap-4 p-4">
           <button
             onClick={() => handleVote(photoPair.photo1.id)}
             disabled={!canVote}
-            className={`relative transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
+            className={`flex-1 relative transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
           >
-            <div className="bg-gray-700 rounded-lg p-16 flex items-center justify-center h-96">
+            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-20">
               <img
                 src={photoPair.photo1.image_url}
                 alt="Фото 1"
-                className="max-w-[240px] max-h-[240px] object-contain rounded"
+                className="max-w-full max-h-full object-contain rounded"
               />
               {!canVote && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <p className="text-gray-400 text-lg font-medium">подождите 7 секунд</p>
+                  <p className="text-gray-400 text-xl font-medium">подождите 7 секунд</p>
                 </div>
               )}
             </div>
@@ -191,13 +191,13 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
           <button
             onClick={() => handleVote(photoPair.photo2.id)}
             disabled={!canVote}
-            className={`relative transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
+            className={`flex-1 relative transition-opacity ${!canVote ? 'opacity-50' : 'hover:opacity-90'}`}
           >
-            <div className="bg-gray-700 rounded-lg p-16 flex items-center justify-center h-96">
+            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-20">
               <img
                 src={photoPair.photo2.image_url}
                 alt="Фото 2"
-                className="max-w-[240px] max-h-[240px] object-contain rounded"
+                className="max-w-full max-h-full object-contain rounded"
               />
             </div>
           </button>
