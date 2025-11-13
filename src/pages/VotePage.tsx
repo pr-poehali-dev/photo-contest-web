@@ -29,6 +29,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
   const [votingComplete, setVotingComplete] = useState(false);
   const [loading, setLoading] = useState(true);
   const [photoPair, setPhotoPair] = useState<PhotoPair | null>(null);
+  const [timeLeft, setTimeLeft] = useState(7);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -44,10 +45,20 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
   useEffect(() => {
     if (photoPair) {
       setCanVote(false);
-      const timer = setTimeout(() => {
-        setCanVote(true);
-      }, 7000);
-      return () => clearTimeout(timer);
+      setTimeLeft(7);
+      
+      const interval = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setCanVote(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => clearInterval(interval);
     }
   }, [photoPair]);
 
@@ -151,8 +162,9 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
               className="w-full h-full object-cover"
             />
             {!canVote && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                <p className="text-white text-lg font-bold">Подождите 7 секунд...</p>
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 gap-2">
+                <p className="text-white text-lg font-bold">Подождите</p>
+                <div className="text-5xl font-bold text-white">{timeLeft}</div>
               </div>
             )}
           </button>
@@ -182,8 +194,9 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
                 className="max-w-full max-h-full object-contain rounded"
               />
               {!canVote && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <p className="text-gray-400 text-xl font-medium">подождите 7 секунд</p>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-4">
+                  <p className="text-gray-400 text-xl font-medium">подождите</p>
+                  <div className="text-6xl font-bold text-gray-300">{timeLeft}</div>
                 </div>
               )}
             </div>
