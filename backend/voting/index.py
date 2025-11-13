@@ -54,7 +54,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         for category in categories:
             cur.execute("""
-                SELECT p.id, p.image_url, p.rating, p.views_count
+                SELECT p.id, p.rating, p.views_count
                 FROM photos p
                 WHERE p.category_id = %s
                 AND p.user_id != %s

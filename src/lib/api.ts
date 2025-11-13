@@ -4,6 +4,7 @@ const API_URLS = {
   voting: 'https://functions.poehali.dev/b422fc96-6af8-47b7-9001-c269e818fe65',
   stats: 'https://functions.poehali.dev/94255665-2b47-4d9e-a41e-072304fe9b76',
   image: 'https://functions.poehali.dev/4a49a45d-b55f-4cc7-b375-49ac3d349cf9',
+  imagesBatch: 'https://functions.poehali.dev/79427aea-8039-448c-999d-29018cf9ec9e',
 };
 
 export interface User {
@@ -52,6 +53,20 @@ export interface Stats {
   };
 }
 
+async function loadImagesBatch(photoIds: number[]): Promise<Record<string, string>> {
+  if (photoIds.length === 0) return {};
+  if (!API_URLS.imagesBatch) return {};
+  
+  try {
+    const response = await fetch(`${API_URLS.imagesBatch}?photo_ids=${photoIds.join(',')}`);
+    if (!response.ok) return {};
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to load images batch:', error);
+    return {};
+  }
+}
+
 export const api = {
   async auth(username: string, password: string, action: 'login' | 'register'): Promise<User> {
     const response = await fetch(API_URLS.auth, {
@@ -77,22 +92,15 @@ export const api = {
     if (!response.ok) throw new Error('Failed to fetch photos');
     const photos = await response.json();
     
-    const photosWithImages = await Promise.all(
-      photos.map(async (photo: Photo) => {
-        try {
-          const imgResponse = await fetch(`${API_URLS.image}?photo_id=${photo.id}`);
-          if (imgResponse.ok) {
-            const { image_url } = await imgResponse.json();
-            return { ...photo, image_url };
-          }
-        } catch (err) {
-          console.error(`Failed to load image ${photo.id}:`, err);
-        }
-        return { ...photo, image_url: '' };
-      })
-    );
+    if (photos.length === 0) return [];
     
-    return photosWithImages;
+    const photoIds = photos.map((p: Photo) => p.id);
+    const images = await loadImagesBatch(photoIds);
+    
+    return photos.map((photo: Photo) => ({
+      ...photo,
+      image_url: images[photo.id.toString()] || ''
+    }));
   },
 
   async uploadPhoto(userId: number, categoryId: number, imageUrl: string): Promise<{ photo_id: number }> {
@@ -117,21 +125,13 @@ export const api = {
     
     if (pair.completed) return pair;
     
-    try {
-      const [img1, img2] = await Promise.all([
-        fetch(`${API_URLS.image}?photo_id=${pair.photo1.id}`).then(r => r.json()),
-        fetch(`${API_URLS.image}?photo_id=${pair.photo2.id}`).then(r => r.json())
-      ]);
-      
-      return {
-        ...pair,
-        photo1: { ...pair.photo1, image_url: img1.image_url },
-        photo2: { ...pair.photo2, image_url: img2.image_url }
-      };
-    } catch (error) {
-      console.error('Failed to load voting images:', error);
-      throw error;
-    }
+    const images = await loadImagesBatch([pair.photo1.id, pair.photo2.id]);
+    
+    return {
+      ...pair,
+      photo1: { ...pair.photo1, image_url: images[pair.photo1.id.toString()] || '' },
+      photo2: { ...pair.photo2, image_url: images[pair.photo2.id.toString()] || '' }
+    };
   },
 
   async submitVote(userId: number, photo1Id: number, photo2Id: number, winnerPhotoId: number): Promise<void> {
@@ -161,40 +161,26 @@ export const api = {
     if (!response.ok) throw new Error('Failed to fetch stats');
     const stats = await response.json();
     
-    try {
-      const imagePromises = [];
-      
-      if (stats.top_photo?.id) {
-        imagePromises.push(
-          fetch(`${API_URLS.image}?photo_id=${stats.top_photo.id}`)
-            .then(r => r.json())
-            .then(data => ({ ...stats.top_photo, image_url: data.image_url }))
-            .catch(() => stats.top_photo)
-        );
-      } else {
-        imagePromises.push(Promise.resolve(null));
-      }
-      
-      const categoryPromises = stats.top_photos_by_category
-        .filter((p: TopPhoto) => p?.id)
-        .map((photo: TopPhoto) =>
-          fetch(`${API_URLS.image}?photo_id=${photo.id}`)
-            .then(r => r.json())
-            .then(data => ({ ...photo, image_url: data.image_url }))
-            .catch(() => photo)
-        );
-      
-      const [topPhoto, ...categoryPhotos] = await Promise.all([...imagePromises, ...categoryPromises]);
-      
-      return {
-        ...stats,
-        top_photo: topPhoto || stats.top_photo,
-        top_photos_by_category: categoryPhotos.length > 0 ? categoryPhotos : stats.top_photos_by_category
-      };
-    } catch (error) {
-      console.error('Failed to load stats images:', error);
-      return stats;
-    }
+    const photoIds: number[] = [];
+    if (stats.top_photo?.id) photoIds.push(stats.top_photo.id);
+    stats.top_photos_by_category.forEach((p: TopPhoto) => {
+      if (p?.id) photoIds.push(p.id);
+    });
+    
+    if (photoIds.length === 0) return stats;
+    
+    const images = await loadImagesBatch(photoIds);
+    
+    return {
+      ...stats,
+      top_photo: stats.top_photo 
+        ? { ...stats.top_photo, image_url: images[stats.top_photo.id.toString()] || '' }
+        : null,
+      top_photos_by_category: stats.top_photos_by_category.map((p: TopPhoto) => ({
+        ...p,
+        image_url: images[p.id.toString()] || ''
+      }))
+    };
   },
 };
 

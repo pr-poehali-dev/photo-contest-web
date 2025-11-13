@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "Get batch images success",
+      "method": "GET",
+      "path": "/?photo_ids=1,2",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Missing photo_ids param",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
