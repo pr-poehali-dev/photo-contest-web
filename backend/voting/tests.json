@@ -1,0 +1,11 @@
+{
+  "tests": [
+    {
+      "name": "Get photo pair for voting",
+      "method": "GET",
+      "path": "/?user_id=1",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    }
+  ]
+}

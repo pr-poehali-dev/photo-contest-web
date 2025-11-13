@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Login user",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "username": "testuser",
+        "password": "testpass",
+        "action": "login"
+      },
+      "expectedStatus": 200
+    }
+  ]
+}
