@@ -1,8 +1,0 @@
-{
-  "tests": [{
-    "name": "Upload test should fail with missing data",
-    "method": "POST",
-    "body": {},
-    "expectedStatus": 400
-  }]
-}

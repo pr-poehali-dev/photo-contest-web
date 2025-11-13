@@ -35,7 +35,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         if user_id:
             cur.execute("""
-                SELECT p.id, p.image_url, p.rating, c.name as category_name, c.id as category_id
+                SELECT p.id, p.rating, c.name as category_name, c.id as category_id
                 FROM photos p
                 JOIN categories c ON p.category_id = c.id
                 WHERE p.user_id = %s
@@ -43,7 +43,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             """, (user_id,))
         else:
             cur.execute("""
-                SELECT p.id, p.image_url, p.rating, c.name as category_name, c.id as category_id, u.username
+                SELECT p.id, p.rating, c.name as category_name, c.id as category_id, u.username
                 FROM photos p
                 JOIN categories c ON p.category_id = c.id
                 JOIN users u ON p.user_id = u.id
@@ -63,7 +63,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     elif method == 'POST':
-        body_data = json.loads(event.get('body', '{}'))
+        body = event.get('body', '{}')
+        if not body or body == '':
+            body = '{}'
+        body_data = json.loads(body)
         user_id = body_data.get('user_id')
         category_id = body_data.get('category_id')
         image_url = body_data.get('image_url')

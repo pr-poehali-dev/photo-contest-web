@@ -1,0 +1,7 @@
+{
+  "tests": [{
+    "name": "Get image without photo_id should fail",
+    "method": "GET",
+    "expectedStatus": 400
+  }]
+}
