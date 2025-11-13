@@ -48,7 +48,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     conn = psycopg2.connect(dsn)
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    cur.execute("SELECT thumbnail_url FROM photos WHERE id = %s", (photo_id,))
+    cur.execute("SELECT thumbnail_url, image_url FROM photos WHERE id = %s", (photo_id,))
     result = cur.fetchone()
     
     cur.close()
@@ -62,9 +62,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
+    thumbnail = result['thumbnail_url'] or result['image_url'] or ''
+    
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-        'body': json.dumps({'thumbnail_url': result['thumbnail_url'] or ''}),
+        'body': json.dumps({'thumbnail_url': thumbnail}),
         'isBase64Encoded': False
     }
