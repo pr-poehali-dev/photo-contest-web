@@ -171,7 +171,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
             disabled={!canVote}
             className={`flex-1 relative overflow-hidden ${!canVote ? 'cursor-not-allowed' : ''}`}
           >
-            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-2">
+            <div className="bg-gray-950 rounded-lg h-full flex items-center justify-center p-2">
               <img
                 src={photoPair.photo1.image_url}
                 alt="Фото 1"
@@ -184,7 +184,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
             disabled={!canVote}
             className={`flex-1 relative overflow-hidden ${!canVote ? 'cursor-not-allowed' : ''}`}
           >
-            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-2">
+            <div className="bg-gray-950 rounded-lg h-full flex items-center justify-center p-2">
               <img
                 src={photoPair.photo2.image_url}
                 alt="Фото 2"
@@ -209,7 +209,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
             disabled={!canVote}
             className={`flex-1 relative transition-opacity ${!canVote ? 'cursor-not-allowed' : 'hover:opacity-90'}`}
           >
-            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-20">
+            <div className="bg-gray-950 rounded-lg h-full flex items-center justify-center p-20">
               <img
                 src={photoPair.photo1.image_url}
                 alt="Фото 1"
@@ -232,7 +232,7 @@ export default function VotePage({ userId, onNavigate }: VotePageProps) {
             disabled={!canVote}
             className={`flex-1 relative transition-opacity ${!canVote ? 'cursor-not-allowed' : 'hover:opacity-90'}`}
           >
-            <div className="bg-gray-700 rounded-lg h-full flex items-center justify-center p-20">
+            <div className="bg-gray-950 rounded-lg h-full flex items-center justify-center p-20">
               <img
                 src={photoPair.photo2.image_url}
                 alt="Фото 2"
